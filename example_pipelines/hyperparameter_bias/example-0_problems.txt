@@ -1,0 +1,8 @@
+[Data Leakage]: Imputation is performed on the entire dataset before splitting into training and testing sets, leading to data leakage.
+[Feature Selection Bias]: Features are selected without a clear justification or consideration of their relevance to the target variable, potentially including irrelevant features or excluding important ones.
+[Lack of Feature Scaling]: Numerical features are not scaled, which can negatively impact the performance of some machine learning algorithms.
+[Target Variable Imbalance]: The distribution of 'score_text' (target variable) is not examined, and potential class imbalance issues are not addressed, which can bias the model towards the majority class.
+[Insufficient Hyperparameter Tuning]: The hyperparameters of the RandomForestClassifier are arbitrarily chosen, and no proper hyperparameter tuning or cross-validation is performed to optimize the model's performance.
+[Ignoring Temporal Aspects]: Features like 'days_b_screening_arrest', 'c_jail_in', and 'c_jail_out' have temporal relationships that are not explicitly modeled. The direct use of these features might not capture the time-dependent effects effectively.
+[Potential for Unfairness]: The dataset contains sensitive attributes like 'race' and 'sex', and the model's fairness is not assessed or addressed, potentially leading to discriminatory outcomes.
+[Data Type Inconsistencies]: The code does not explicitly handle date/time data types ('dob', 'c_jail_in', 'c_jail_out'), which could lead to issues during feature engineering or modeling.

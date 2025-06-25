@@ -1,0 +1,3 @@
+[Incorrect text normalization]: The text normalization being applied to the 'occupation' column is simplistic and might not be the most appropriate for a real-world text dataset. Lowercasing and replacing hyphens might not be sufficient to handle variations in text.  
+[Incorrect spatial aggregation]: Aggregating the 'native-country' feature by replacing all values with 'North America' results in significant information loss, potentially harming model performance.  
+[Missing data handling]: Although imputation is used, the choice of 'median' for numerical features and 'missing' for categorical features might not be the optimal strategy without further analysis of the data's characteristics and missingness patterns.

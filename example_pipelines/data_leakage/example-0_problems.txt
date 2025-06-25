@@ -1,0 +1,3 @@
+[Data Leakage]: The `LabelEncoder` is fit on the entire target variable `y` before splitting the data. This can lead to information leakage from the test set into the training set.
+[Lack of Cross-Validation]: The model performance is evaluated on a single train/test split. There's no cross-validation to get a more robust estimate of the model's generalization performance.
+[Missing Hyperparameter Tuning]: The `LogisticRegression` model is used with default hyperparameters. Without hyperparameter tuning, the model may not be performing optimally.

@@ -1,6 +1,6 @@
 import traceback
 import re
-
+from time import sleep
 import mlflow
 from google import genai
 
@@ -16,25 +16,23 @@ def try_run_pipeline(code):
         return None, None
     except Exception as e:
         return str(e), traceback.format_exc()
-    
+
 
 def ask_gemini_to_fix(code: str, error: str, tb: str) -> str:
     """Envoie le code et l'erreur à Gemini, renvoie la réponse brute."""
     prompt = f"""
-Cette pipeline Python ML renvoie une erreur à l'exécution.
+This Python ML pipeline throws a runtime error.
 
-❌ Erreur :
+❌ Error:
 {error}
 
-🔍 Traceback :
+🔍 Traceback:
 {tb}
 
-💻 Code complet :
+💻 Full code:
 ```python
 {code}
-```
-
-✅ Merci de fournir une version corrigée du code complète, placée dans un seul bloc ```python```.
+✅ Please provide a corrected, complete version of the code within a single python block.
 """
     response = client.models.generate_content(
         model=MODEL,
@@ -51,11 +49,14 @@ def main(filepath: str = "pipeline.py"):
     orig_file = filepath
     fixed_file = "pipeline_fixed.py"
 
-    # Read the original code
     with open(orig_file, "r", encoding="utf-8") as f:
         code = f.read() 
     # Try running the pipeline
-    error, tb = try_run_pipeline(orig_file)
+    try:
+        error, tb = try_run_pipeline(orig_file)
+    except Exception as e:
+        print("⚠️ Error while trying to run the pipeline:", e)
+        
     if error is None:
         print("✅ Pipeline ran successfully—no fix needed.")
         return      
@@ -87,4 +88,5 @@ def main(filepath: str = "pipeline.py"):
             print("⚠️ Too many iterations without success. Stopping.")
             return
         
-main()
+if __name__ == "__main__":
+    main()

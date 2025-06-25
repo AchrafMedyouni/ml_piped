@@ -1,0 +1,4 @@
+[Data Leakage]: Label encoding the target variable 'score_text' before splitting the data into training and testing sets can lead to data leakage if the test set contains categories not present in the training set.  
+[Data Imputation]: Applying SimpleImputer with 'most_frequent' strategy on all columns, including numerical features, might not be appropriate as it can distort the underlying distribution of numerical data. This can lead to a biased or less accurate model.
+[Feature Scaling]: Numerical features are not scaled. Depending on the choice of model, feature scaling can significantly affect performance.
+[Missing Value Handling]: The code imputes missing values using only the most frequent strategy, which is not ideal as the best strategy depends on the data characteristics and may introduce bias or distort relationships between features. The description includes that a better more robust implementation could be written.

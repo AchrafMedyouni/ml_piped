@@ -1,0 +1,4 @@
+[Covariate Shift]: The code artificially introduces a covariate shift by sampling classes unequally before splitting the data into training and testing sets, potentially leading to a model that performs poorly on data with a different class distribution.
+[Data Leakage]: The 'Fare' column is being imputed with the median of the 'Fare' column after the data is shifted which is fine. However, 'Fare' is being filled with the median of 'Age'. This will corrupt the model.
+[Missing Value Handling]: Missing values are imputed *before* splitting the data into training and testing sets, leading to data leakage from the test set into the training set.
+[Inconsistent Imputation]: There's an inconsistency in imputing 'Fare'; it's being filled using the median of 'Age' instead of 'Fare'.

@@ -1,0 +1,6 @@
+[Lack of Feature Scaling]: Numerical features are not scaled, which can negatively impact the performance of Logistic Regression.  
+[Fixed Regularization Strength]: The regularization strength (C=1e-4) is fixed, and it might not be optimal for the dataset, potentially leading to underfitting or overfitting.  
+[No Cross-Validation]: No cross-validation is used to evaluate the model's performance, so the reported performance might not generalize well to unseen data.  
+[Imbalanced Data Handling]: The code doesn't explicitly handle potential class imbalance in the 'salary' target variable, which could bias the model towards the majority class.  
+[Missing Data Handling]: The code does not address the possibility of missing values in the dataset.  
+[Potential Data Leakage]: The OneHotEncoder is fit on the training data but applied to the test data; this is correct usage, but one must be careful of data leakage when performing more complex feature engineering.

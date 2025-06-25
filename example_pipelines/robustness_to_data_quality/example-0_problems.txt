@@ -1,0 +1,5 @@
+[Lack of cross-validation]: The code lacks cross-validation for model evaluation, which could lead to overfitting and unreliable performance estimates.  
+[Insufficient hyperparameter tuning]: The RandomForestClassifier is used with default hyperparameters, which might not be optimal for the given dataset.  
+[No scaling of numerical features]: The numerical features are not scaled, which could negatively impact the performance of some models or the OneHotEncoder if it were to handle numerical data.  
+[Uncontrolled noise injection]: The added noise is not controlled or based on any domain knowledge, and the magnitude of the noise (standard deviation of 15) might be unrealistically high, making the robustness test artificial and not representative of real-world scenarios.  
+[No explanation of sensitivity/robustness test]: The purpose of the noise injection is not clearly articulated. The code comments mention "sensitivity" but don't specify what aspect of the model's sensitivity is being tested.

@@ -1,0 +1,5 @@
+[Lack of data exploration]: The code does not include any data exploration or preprocessing steps, such as handling missing values, outliers, or feature scaling, which could significantly impact model performance.  
+[No hyperparameter tuning]: The code uses default hyperparameters for the Logistic Regression model without any hyperparameter tuning, which could lead to suboptimal performance.  
+[No cross-validation]: The model is evaluated on a single train/test split, which might not provide a reliable estimate of its generalization performance. Cross-validation should be used to obtain a more robust evaluation.  
+[Imbalanced data]: The code does not address the possibility of imbalanced classes in the target variable 'Diabetes_binary'. If the classes are imbalanced, the model might be biased towards the majority class, and metrics like accuracy can be misleading.  
+[No feature selection/engineering]: The code directly uses all features without any feature selection or engineering, which could improve model performance and interpretability.

@@ -1,0 +1,5 @@
+[Data Leakage]: LabelEncoder is fit on the entire dataset before splitting into training and testing sets, leading to data leakage.  
+[Feature Removal]: Removing 'education' and 'occupation' without justification could lead to significant loss of predictive power.  
+[Lack of Data Exploration]: There is no exploratory data analysis (EDA) to understand the data distribution, missing values, or feature relationships before preprocessing and modeling.  
+[No Handling of Missing Values]: The code does not explicitly handle missing values, which are common in real-world datasets and can affect model performance.  
+[No Feature Scaling]: The code doesn't include feature scaling, which can be important for algorithms sensitive to feature ranges.

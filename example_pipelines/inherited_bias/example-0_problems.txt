@@ -1,0 +1,2 @@
+[Biased Dataset]: The code explicitly acknowledges using a "known biased dataset" without addressing the potential fairness implications or mitigation strategies.  
+[Lack of Fairness Metrics]: The code evaluates the model using standard metrics (classification report) but doesn't include any fairness metrics to assess potential disparities in performance across different demographic groups.
