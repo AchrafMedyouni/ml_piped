@@ -3,9 +3,8 @@ import re
 from time import sleep
 import mlflow
 from google import genai
-
-# ─── Configuration Gemini CLIENT ───────────────────────────────────────────
-API_KEY = "AIzaSyDWklovIvU6F6n3xUqQiqIvpDVTmx53zdc"  # Remplacez par votre clé en clair
+#change the API key to your own
+API_KEY = "AIzaSyDWklovIvU6F6n3xUqQiqIvpDVTmx53zdc" 
 client = genai.Client(api_key=API_KEY)
 MODEL = "gemini-2.0-flash"
 
@@ -40,10 +39,13 @@ This Python ML pipeline throws a runtime error.
     )
     return response.text
 
+
 def extract_code(reply: str) -> str | None:
     """Extracts Python code contained in a Markdown ```python block``` if present."""
     match = re.search(r"```python\n(.+?)```", reply, re.S)
-    return match.group(1) if match else None    
+    return match.group(1) if match else None 
+
+
 def main(filepath: str = "pipeline.py"):
     """Main function to run the pipeline and fix it if it fails."""
     orig_file = filepath
@@ -66,6 +68,7 @@ def main(filepath: str = "pipeline.py"):
     current_tb = tb
     i = 0
 
+
     while current_error is not None:
         fix_reply = ask_gemini_to_fix(current_code, current_error, current_tb)
         fixed_code = extract_code(fix_reply)
@@ -87,6 +90,8 @@ def main(filepath: str = "pipeline.py"):
         if i >= 5:
             print("⚠️ Too many iterations without success. Stopping.")
             return
-        
+
+
+
 if __name__ == "__main__":
     main()

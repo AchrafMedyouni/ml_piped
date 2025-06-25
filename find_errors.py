@@ -5,7 +5,8 @@ import mlflow
 from google import genai
 from time import sleep
 # ─── Configuration Gemini CLIENT ───────────────────────────────────────────
-API_KEY = "AIzaSyDWklovIvU6F6n3xUqQiqIvpDVTmx53zdc"  # Remplacez par votre clé en clair
+# Change the API key to your own
+API_KEY = "API_key"  # Remplacez par votre clé en clair
 client = genai.Client(api_key=API_KEY)
 MODEL = "gemini-2.0-flash"
 
