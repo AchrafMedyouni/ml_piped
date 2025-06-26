@@ -1,12 +1,11 @@
 import traceback
 import re
 
-import mlflow
 from google import genai
 from time import sleep
 # ─── Configuration Gemini CLIENT ───────────────────────────────────────────
 # Change the API key to your own
-API_KEY = "API_key"  # Remplacez par votre clé en clair
+API_KEY = "AIzaSyDWklovIvU6F6n3xUqQiqIvpDVTmx53zdc"  # Remplacez par votre clé en clair
 client = genai.Client(api_key=API_KEY)
 MODEL = "gemini-2.0-flash"
 
@@ -57,14 +56,7 @@ def ask_gemini_to_find_problems(code: str) -> str:
 
     return response.text, titles
 
-orig_file = 'pipeline.py'
-fixed_file = "pipeline_fixed.py"
 
-    # Read the original code
-with open(fixed_file, "r", encoding="utf-8") as f:
-    code = f.read() 
-    # Try running the pipeline
-#ask_gemini_to_find_problems(code)
 from pathlib import Path
 def list_pipelines(directory: str = "example_pipelines") -> list[str]:
     """Lists all Python files in the specified directory."""
