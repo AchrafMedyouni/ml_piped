@@ -1,4 +1,5 @@
 # ML PIPED - Practical Issues in Pipelines -  Example Dataset
+# Note from Achraf, code here is very early version but it gets the job done (outside of some bugs here and there...)
 
 ![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg)
 
