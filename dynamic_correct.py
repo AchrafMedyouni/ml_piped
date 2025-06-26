@@ -5,18 +5,25 @@ import mlflow
 from google import genai
 from find_errors import ask_gemini_to_find_problems
 import json
+import io
+from contextlib import redirect_stdout
+import pandas as pd
+
 #change the API key to your own
 API_KEY = "AIzaSyDWklovIvU6F6n3xUqQiqIvpDVTmx53zdc" 
 client = genai.Client(api_key=API_KEY)
 MODEL = "gemini-2.0-flash"
 
-def try_run_pipeline(code):
-    """Tries running the pipeline and returns (None, None) if all is well, or (error, traceback) otherwise."""
+def try_run_pipeline(code_str: str):
+
+    buf = io.StringIO()
     try:
-        exec(code, {})
-        return None, None
+        # everything that pipeline prints goes into buf
+        with redirect_stdout(buf):
+            exec(code_str, {})  
+        return None, None, buf.getvalue()
     except Exception as e:
-        return str(e), traceback.format_exc()
+        return str(e), traceback.format_exc(), buf.getvalue()
 
 
 def ask_gemini_to_fix(code: str, error: str, tb: str, problems: str) -> str:
@@ -24,7 +31,7 @@ def ask_gemini_to_fix(code: str, error: str, tb: str, problems: str) -> str:
     prompt = f"""
 This Python ML pipeline has the following problems and throws this error.
 Problems: 
-f{problems}
+{problems}
 ❌ Error:
 {error}
 
@@ -63,6 +70,83 @@ def extract_code(reply: str) -> str | None:
     return match.group(1) if match else None 
 
 
+def _sanitize_label(label: str) -> str:
+    # map relational ops → text
+    s = label.replace(">=", "ge_") \
+             .replace(">",  "gt_") \
+             .replace("<=", "le_") \
+             .replace("<",  "lt_")
+    # spaces → underscores
+    s = re.sub(r"\s+", "_", s)
+    # drop any remaining disallowed chars (keep alnum, _-./ space)
+    s = re.sub(r"[^A-Za-z0-9_\-./ ]", "_", s)
+    # collapse multiple underscores
+    s = re.sub(r"_+", "_", s).strip("_")
+    return s
+def log_classification_report_artifact(
+    report_str: str,
+    text_name: str = "classification_report.txt",
+    csv_name: str  = None,
+    html_name: str = None,
+):
+    """
+    Logs the raw printed report_str as plain text, and optionally as CSV/HTML.
+    """
+    # 1) raw text
+    mlflow.log_text(report_str, text_name)
+
+    # parse once if CSV or HTML requested
+    if csv_name or html_name:
+        import pandas as pd
+        from io import StringIO
+        df = pd.read_fwf(StringIO(report_str), index_col=0)
+
+    if csv_name:
+        df.to_csv(csv_name)
+        mlflow.log_artifact(csv_name)
+
+    if html_name:
+        html = df.to_html()
+        mlflow.log_text(html, html_name)
+def log_classification_report_from_string(
+    report_str: str,
+    artifact_path: str = "classification_report.json",
+    log_individual_metrics: bool = True,
+) -> None:
+    """
+    Parse a sklearn-style text report from `report_str`,
+    log the nested dict as a JSON artifact, and optionally
+    log each cell as its own MLflow metric with sanitized keys.
+    """
+    # find header and slice downwards
+    lines = report_str.strip().splitlines()
+    header_i = next(
+        (i for i, L in enumerate(lines)
+          if re.search(r"\bprecision\b.*\brecall\b.*\bf1-score\b", L)),
+        None
+    )
+    if header_i is None:
+        raise ValueError("Couldn't find classification-report header")
+
+    table = "\n".join(lines[header_i:])
+    df = pd.read_fwf(io.StringIO(table), index_col=0)
+    df = df.loc[~df.index.isin(df.columns)]            # drop stray header-row
+    df = df.apply(pd.to_numeric, errors="coerce")      # to floats
+
+    # log full JSON
+    metrics_dict = df.to_dict(orient="index")
+    mlflow.log_dict(metrics_dict, artifact_path)
+
+    if log_individual_metrics:
+        for raw_label, row in metrics_dict.items():
+            safe_label = _sanitize_label(raw_label)
+            for metric_name, val in row.items():
+                if val is not None and not pd.isna(val):
+                    key = f"{safe_label}_{metric_name}"
+                    mlflow.log_metric(key, float(val))
+
+
+
 def main(filepath: str = "pipeline.py"):
     """Main function to run the pipeline and fix it if it fails."""
     orig_file = filepath
@@ -72,7 +156,7 @@ def main(filepath: str = "pipeline.py"):
         code = f.read() 
     # Try running the pipeline
     try:
-        error, tb = try_run_pipeline(orig_file)
+        error, tb, printed = try_run_pipeline(orig_file)
     except Exception as e:
         print("⚠️ Error while trying to run the pipeline:", e)
         
@@ -84,6 +168,7 @@ def main(filepath: str = "pipeline.py"):
     current_error = error
     current_tb = tb
     i = 0
+
     mlflow.set_tracking_uri("http://127.0.0.1:5000")
     mlflow.set_experiment("autofix_pipeline")
     with mlflow.start_run(run_name="autofix_gemini_test"):
@@ -102,7 +187,8 @@ def main(filepath: str = "pipeline.py"):
                 return
             #running the fixed code
             current_code = fixed_code
-            current_error, current_tb = try_run_pipeline(current_code)
+            current_error, current_tb, printed = try_run_pipeline(current_code)
+            
             i += 1
             if current_error is None:
                 print(f"✅ Pipeline fixed successfully after {i} iterations.")
@@ -111,6 +197,8 @@ def main(filepath: str = "pipeline.py"):
                 mlflow.log_metric("fix_iterations", i)
                 mlflow.log_text(current_code, "pipeline_fixed.py")
                 mlflow.log_artifact(fixed_file)
+                log_classification_report_artifact(printed, "classification_report.txt")
+                print("Classification report logged as JSON artifact.")
                 print(f"✅ Fixed code written to {fixed_file}.")
                 mlflow.log_param("fix_extracted", True)
                 mlflow.log_text(fix_reply, "gemini_full_response.txt")

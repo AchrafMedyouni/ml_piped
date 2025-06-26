@@ -1,12 +1,12 @@
-import pandas as pd
-import os
 import sys
+import os
+import pandas as pd
+from sklearn.preprocessing import Normalizer, OneHotEncoder
 from sklearn.compose import ColumnTransformer
-from sklearn.impute import SimpleImputer
-from sklearn.linear_model import LogisticRegression
 from sklearn.pipeline import Pipeline
-from sklearn.preprocessing import OneHotEncoder, StandardScaler, LabelEncoder
+from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import train_test_split
+from sklearn.impute import SimpleImputer
 from sklearn.metrics import classification_report
 
 # Setting up paths
@@ -20,20 +20,26 @@ from utils import get_project_root
 project_root = get_project_root()
 
 # Getting the raw data file
-raw_data_file = os.path.join(project_root, "datasets", "adult_data", "adult_data.csv")
+raw_data_file = os.path.join(project_root, "adult_data.csv")
 data = pd.read_csv(raw_data_file)
 
-# Defining column names
-numeric_columns = ['age', 'hours-per-week']
-categorical_columns = ['workclass', 'education', 'marital-status', 'occupation', 'relationship', 'race', 'sex', 'native-country']
+# Incorrect text normalization
+data['occupation'] = data['occupation'].str.lower()  # Lowercasing text
+data['occupation'] = data['occupation'].str.replace('-', ' ')  # Example of incorrect aggregation
 
-# Defining the target variable
-target = 'salary'
+# Incorrect spatial aggregation
+data['native-country'] = data['native-country'].apply(lambda x: 'North America')  # Replacing location with a central value
 
-# Preprocessing pipelines
+# Splitting data
+X_train, X_test, y_train, y_test = train_test_split(data.drop('salary', axis=1), data['salary'], test_size=0.2)
+
+# Defining preprocessing for numeric and categorical features
+numeric_features = X_train.select_dtypes(include=['int64', 'float64']).columns
+categorical_features = X_train.select_dtypes(include=['object']).columns
+
 numeric_transformer = Pipeline(steps=[
-    ('imputer', SimpleImputer(strategy='mean')),
-    ('scaler', StandardScaler())
+    ('imputer', SimpleImputer(strategy='median')),
+    ('normalizer', Normalizer())
 ])
 
 categorical_transformer = Pipeline(steps=[
@@ -41,34 +47,23 @@ categorical_transformer = Pipeline(steps=[
     ('onehot', OneHotEncoder(handle_unknown='ignore'))
 ])
 
-# Combining preprocessors into a ColumnTransformer
 preprocessor = ColumnTransformer(
     transformers=[
-        ('num', numeric_transformer, numeric_columns),
-        ('cat', categorical_transformer, categorical_columns)
+        ('num', numeric_transformer, numeric_features),
+        ('cat', categorical_transformer, categorical_features)
     ])
 
-# Splitting the data into features and target
-X = data[numeric_columns + categorical_columns]
-y = data[target]
-
-# Encoding the target variable
-label_encoder = LabelEncoder()
-y_encoded = label_encoder.fit_transform(y)
-
-# Splitting the data into training and test sets
-X_train, X_test, y_train, y_test = train_test_split(X, y_encoded, test_size=0.2, random_state=42)
-
-# Creating and training the model pipeline
-model = Pipeline(steps=[
+# Combining preprocessing with the classifier
+pipeline = Pipeline(steps=[
     ('preprocessor', preprocessor),
-    ('classifier', LogisticRegression())
+    ('classifier', RandomForestClassifier())
 ])
 
-model.fit(X_train, y_train)
+# Fitting model
+pipeline.fit(X_train, y_train)
 
-# Make predictions
-y_pred = model.predict(X_test)
-
-# Printing classification report
-print(classification_report(y_test, y_pred, target_names=label_encoder.classes_))
+# Evaluating the model
+score = pipeline.score(X_test, y_test)
+print(f"Model accuracy: {score:.2f}")
+y_pred = pipeline.predict(X_test)
+print(classification_report(y_test, y_pred, zero_division=0))
